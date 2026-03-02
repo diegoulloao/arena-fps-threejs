@@ -6,6 +6,8 @@ import { Physics } from "@react-three/cannon";
 // 3D
 import { Ground, FirstPerson, Player } from "@components/3d";
 
+const GROUND_SIZE: [number, number] = [30, 30];
+
 const Scene: React.FC = () => {
   return (
     <Canvas>
@@ -25,8 +27,8 @@ const Scene: React.FC = () => {
       <FirstPerson />
 
       <Physics>
-        <Player yStartPoint={3} />
-        <Ground size={[30, 30]} />
+        <Player yStartPoint={3} movementBounds={GROUND_SIZE} />
+        <Ground size={GROUND_SIZE} />
       </Physics>
     </Canvas>
   );
