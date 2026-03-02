@@ -1,6 +1,9 @@
 import { Euler, Vector3 } from "three";
 import {
+  AIR_CONTROL_BLEND_FACTOR,
+  AIR_MOMENTUM_THRESHOLD,
   AIR_MOVEMENT_FACTOR,
+  AIR_SPEED_EPSILON,
   GROUND_CHECK_EPSILON,
   GROUND_HEIGHT,
   JUMP_VELOCITY_EPSILON,
@@ -79,7 +82,7 @@ export const getMovementDirection = (
   Blocks horizontal velocity components that would move the player outside map bounds.
 */
 export const limitHorizontalVelocityAtBounds = (
-  direction: Vector3,
+  horizontalVelocity: HorizontalVelocity,
   [currentX, , currentZ]: PlayerPosition,
   { xLimit, zLimit }: MovementLimits,
 ): HorizontalVelocity => {
@@ -88,8 +91,8 @@ export const limitHorizontalVelocityAtBounds = (
   const isAtMinZ = currentZ <= -zLimit + POSITION_EPSILON;
   const isAtMaxZ = currentZ >= zLimit - POSITION_EPSILON;
 
-  let velocityX = direction.x;
-  let velocityZ = direction.z;
+  let velocityX = horizontalVelocity.x;
+  let velocityZ = horizontalVelocity.z;
 
   if ((isAtMinX && velocityX < 0) || (isAtMaxX && velocityX > 0)) {
     velocityX = 0;
@@ -118,16 +121,45 @@ export const isPlayerGrounded = ([, positionY]: PlayerPosition): boolean => {
   Reduces horizontal movement while in air to emulate lower air control.
 */
 export const applyAirMovementFactor = (
-  horizontalVelocity: HorizontalVelocity,
+  desiredHorizontalVelocity: HorizontalVelocity,
+  currentHorizontalVelocity: HorizontalVelocity,
   isGrounded: boolean,
 ): HorizontalVelocity => {
   if (isGrounded) {
-    return horizontalVelocity;
+    return desiredHorizontalVelocity;
+  }
+
+  const currentHorizontalSpeed = Math.hypot(
+    currentHorizontalVelocity.x,
+    currentHorizontalVelocity.z,
+  );
+  const hasMomentum = currentHorizontalSpeed >= AIR_MOMENTUM_THRESHOLD;
+
+  if (!hasMomentum) {
+    return {
+      x: desiredHorizontalVelocity.x * AIR_MOVEMENT_FACTOR,
+      z: desiredHorizontalVelocity.z * AIR_MOVEMENT_FACTOR,
+    };
+  }
+
+  const desiredHorizontalSpeed = Math.hypot(
+    desiredHorizontalVelocity.x,
+    desiredHorizontalVelocity.z,
+  );
+
+  if (desiredHorizontalSpeed <= AIR_SPEED_EPSILON) {
+    return currentHorizontalVelocity;
   }
 
   return {
-    x: horizontalVelocity.x * AIR_MOVEMENT_FACTOR,
-    z: horizontalVelocity.z * AIR_MOVEMENT_FACTOR,
+    x:
+      currentHorizontalVelocity.x +
+      (desiredHorizontalVelocity.x - currentHorizontalVelocity.x) *
+        AIR_CONTROL_BLEND_FACTOR,
+    z:
+      currentHorizontalVelocity.z +
+      (desiredHorizontalVelocity.z - currentHorizontalVelocity.z) *
+        AIR_CONTROL_BLEND_FACTOR,
   };
 };
 

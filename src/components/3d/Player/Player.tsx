@@ -62,16 +62,23 @@ const Player: React.FC<PlayerProps> = ({
     camera.position.set(...positionRef.current);
 
     const direction = getMovementDirection(movements, camera.rotation);
-    const horizontalVelocity = limitHorizontalVelocityAtBounds(
-      direction,
-      positionRef.current,
-      movementLimits,
+    const isGrounded = isPlayerGrounded(positionRef.current);
+    const desiredHorizontalVelocity = { x: direction.x, z: direction.z };
+    const currentHorizontalVelocity = {
+      x: velocityRef.current[0],
+      z: velocityRef.current[2],
+    };
+
+    const adjustedHorizontalVelocity = applyAirMovementFactor(
+      desiredHorizontalVelocity,
+      currentHorizontalVelocity,
+      isGrounded,
     );
 
-    const isGrounded = isPlayerGrounded(positionRef.current);
-    const adjustedHorizontalVelocity = applyAirMovementFactor(
-      horizontalVelocity,
-      isGrounded,
+    const boundedHorizontalVelocity = limitHorizontalVelocityAtBounds(
+      adjustedHorizontalVelocity,
+      positionRef.current,
+      movementLimits,
     );
 
     const currentVerticalVelocity = velocityRef.current[1];
@@ -89,9 +96,9 @@ const Player: React.FC<PlayerProps> = ({
     }
 
     api.velocity.set(
-      adjustedHorizontalVelocity.x,
+      boundedHorizontalVelocity.x,
       nextVerticalVelocity,
-      adjustedHorizontalVelocity.z,
+      boundedHorizontalVelocity.z,
     );
   });
 
