@@ -1,28 +1,27 @@
-// React
 import { useCallback, useEffect, useState } from "react";
 
-// Types
-type Movements = typeof INITIAL_MOVEMENTS;
-type Movement = keyof Movements;
-
-// Interfaces
 interface PlayerActions {
   [key: React.KeyboardEvent["code"]]: Movement;
 }
 
+type Movements = typeof INITIAL_MOVEMENTS;
+type Movement = keyof Movements;
+
+// Constants
 const INITIAL_MOVEMENTS = {
   moveForward: false,
   moveBackguard: false,
   moveLeft: false,
   moveRight: false,
+  jump: false,
 };
 
-// Constants
 const PLAYER_ACTIONS: PlayerActions = {
   KeyW: "moveForward",
   KeyS: "moveBackguard",
   KeyA: "moveLeft",
   KeyD: "moveRight",
+  Space: "jump",
 };
 
 const usePlayerMovements = (): Movements => {
@@ -66,7 +65,7 @@ const usePlayerMovements = (): Movements => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
     };
-  }, []);
+  }, [onKeyDown, onKeyUp]);
 
   return movements;
 };
