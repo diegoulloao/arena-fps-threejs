@@ -3,6 +3,7 @@ import type { MovementBounds } from "./types";
 export const PLAYER_WALK_SPEED = 7;
 export const PLAYER_RADIUS = 1;
 export const POSITION_EPSILON = 0.001;
+export const AIR_MOVEMENT_FACTOR = 0.4;
 export const JUMP_FORCE = 8;
 export const GROUND_HEIGHT = -0.5;
 export const GROUND_CHECK_EPSILON = 0.05;

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useSphere } from "@react-three/cannon";
-
 import { usePlayerMovements } from "../hooks";
 import {
   DEFAULT_MOVEMENT_BOUNDS,
@@ -9,15 +8,23 @@ import {
   JUMP_FORCE,
   PLAYER_RADIUS,
 } from "./constants";
+
 import {
+  applyAirMovementFactor,
   canPlayerJump,
   clampPositionToBounds,
   getMovementDirection,
   getMovementLimits,
+  isPlayerGrounded,
   limitHorizontalVelocityAtBounds,
 } from "./helpers";
+
 import type { PlayerPosition, PlayerProps, PlayerVelocity } from "./types";
 
+/**
+ * Component: Player
+ * Represents the player character in the 3D scene, handling movement, jumping, and physics interactions.
+ */
 const Player: React.FC<PlayerProps> = ({
   yStartPoint = DEFAULT_Y_START_POINT,
   movementBounds = DEFAULT_MOVEMENT_BOUNDS,
@@ -61,6 +68,12 @@ const Player: React.FC<PlayerProps> = ({
       movementLimits,
     );
 
+    const isGrounded = isPlayerGrounded(positionRef.current);
+    const adjustedHorizontalVelocity = applyAirMovementFactor(
+      horizontalVelocity,
+      isGrounded,
+    );
+
     const currentVerticalVelocity = velocityRef.current[1];
     let nextVerticalVelocity = currentVerticalVelocity;
 
@@ -76,9 +89,9 @@ const Player: React.FC<PlayerProps> = ({
     }
 
     api.velocity.set(
-      horizontalVelocity.x,
+      adjustedHorizontalVelocity.x,
       nextVerticalVelocity,
-      horizontalVelocity.z,
+      adjustedHorizontalVelocity.z,
     );
   });
 

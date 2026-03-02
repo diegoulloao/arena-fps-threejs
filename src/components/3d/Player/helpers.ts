@@ -1,5 +1,6 @@
 import { Euler, Vector3 } from "three";
 import {
+  AIR_MOVEMENT_FACTOR,
   GROUND_CHECK_EPSILON,
   GROUND_HEIGHT,
   JUMP_VELOCITY_EPSILON,
@@ -105,14 +106,39 @@ export const limitHorizontalVelocityAtBounds = (
 };
 
 /*
+  Returns true when the player's feet are touching the ground threshold.
+*/
+export const isPlayerGrounded = ([, positionY]: PlayerPosition): boolean => {
+  const feetY = positionY - PLAYER_RADIUS;
+
+  return feetY <= GROUND_HEIGHT + GROUND_CHECK_EPSILON;
+};
+
+/*
+  Reduces horizontal movement while in air to emulate lower air control.
+*/
+export const applyAirMovementFactor = (
+  horizontalVelocity: HorizontalVelocity,
+  isGrounded: boolean,
+): HorizontalVelocity => {
+  if (isGrounded) {
+    return horizontalVelocity;
+  }
+
+  return {
+    x: horizontalVelocity.x * AIR_MOVEMENT_FACTOR,
+    z: horizontalVelocity.z * AIR_MOVEMENT_FACTOR,
+  };
+};
+
+/*
   Returns true when the player is grounded and not already moving upward.
 */
 export const canPlayerJump = (
-  [, positionY]: PlayerPosition,
+  position: PlayerPosition,
   currentVerticalVelocity: number,
 ): boolean => {
-  const feetY = positionY - PLAYER_RADIUS;
-  const isGrounded = feetY <= GROUND_HEIGHT + GROUND_CHECK_EPSILON;
+  const isGrounded = isPlayerGrounded(position);
   const isNotMovingUp = currentVerticalVelocity <= JUMP_VELOCITY_EPSILON;
 
   return isGrounded && isNotMovingUp;
